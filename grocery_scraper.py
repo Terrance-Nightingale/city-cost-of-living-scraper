@@ -1,7 +1,6 @@
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-# TODO needs to use Selenium to find_element(). bs4 can't find == $0 elements.
 
 
 class GroceryScraper:
@@ -25,6 +24,9 @@ class GroceryScraper:
             self.fruit_url, self.veg_url, self.dairy_url,
             self.meat_url, self.grains_url, self.bread_url
         ]
+        self.categories = [
+            "Fruits", "Vegetables", "Dairy", "Meat", "Grain", "Bread"
+        ]
 
         options = webdriver.EdgeOptions()
         options.add_experimental_option("detach", True)
@@ -33,21 +35,37 @@ class GroceryScraper:
         self.driver = webdriver.Edge(options=options)
         self.driver.set_window_size(1700, 1000)
 
-        self.fruit_prices = {}
-        self.veg_prices = {}
-        self.dairy_prices = {}
-        self.meat_prices = {}
-        self.grain_prices = {}
-        self.bread_prices = {}
+        self.fruit_prices = []
+        self.veg_prices = []
+        self.dairy_prices = []
+        self.meat_prices = []
+        self.grain_prices = []
+        self.bread_prices = []
         self.prices = [
-            self.fruit_prices, self.veg_prices, self.dairy_prices, self.meat_prices,
-            self.grain_prices, self.bread_prices
+            self.fruit_prices, self.veg_prices, self.dairy_prices,
+            self.meat_prices, self.grain_prices, self.bread_prices
         ]
+
+        self.category_pos = 0
 
     def get_prices(self):
         for url in self.urls:
             self.driver.get(url)
-            time.sleep(8)
+            time.sleep(10)
+            last_height = self.driver.execute_script("return document.body.scrollHeight")
+
+            while True:
+                # Scroll down to bottom
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+                # Wait to load page
+                time.sleep(2)
+
+                # Calculate new scroll height and compare with last scroll height
+                new_height = self.driver.execute_script("return document.body.scrollHeight")
+                if new_height == last_height:
+                    break
+                last_height = new_height
 
             names = self.driver.find_elements(By.CLASS_NAME, 'e-8zabzc')
             prices = self.driver.find_elements(By.CLASS_NAME, 'screen-reader-only')
@@ -56,11 +74,19 @@ class GroceryScraper:
                 pos = names.index(item)
                 name = item.text
                 price = prices[pos].text
+                category = self.categories[self.category_pos]
 
-                self.fruit_prices[f"{name}"] = price
+                item_price = {
+                    "Category": category,
+                    "Item": name,
+                    "Price": price
+                }
+                self.prices[self.category_pos].append(item_price)
+            self.category_pos += 1
 
         self.prices = [
             self.fruit_prices, self.veg_prices, self.dairy_prices, self.meat_prices,
             self.grain_prices, self.bread_prices
         ]
+
         return self.prices
