@@ -56,7 +56,7 @@ class GroceryScraper:
 
             while True:
                 # Scroll down to bottom
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                self.driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight);")
 
                 # Wait to load page
                 time.sleep(2)

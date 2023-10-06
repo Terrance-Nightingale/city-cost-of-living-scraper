@@ -31,6 +31,7 @@ class RentScraper:
         self.prices = []
         self.addresses = []
         self.urls = []
+        self.rental_data = []
 
     def get_price(self):
         listings = self.soup.find_all(name="span", class_="PropertyCardWrapper__StyledPriceLine-srp__sc-16e8gqd-1 "
@@ -58,3 +59,17 @@ class RentScraper:
                 url = url_text
             self.urls.append(url)
         return self.urls
+
+    def get_data(self):
+        prices = self.get_price()
+        addresses = self.get_address()
+        urls = self.get_url()
+
+        for num in range(0, len(prices) - 1):
+            apartment = {
+                "Price": prices[num],
+                "Address": addresses[num],
+                "URL": urls[num]
+            }
+            self.rental_data.append(apartment)
+        return self.rental_data

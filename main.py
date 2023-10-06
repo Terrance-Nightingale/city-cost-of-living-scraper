@@ -1,19 +1,32 @@
 import pandas as pd
 from apartment_scraper import RentScraper
 from grocery_scraper import GroceryScraper
-# TODO 1. Rent price website (average, min and max)
+from transport_scraper import TransportScraper
 # TODO 2. Gas prices in the city (average)
 # TODO 3. Utility prices (average)
-# TODO 4. Write this info to a CSV file
-
-rent_scraper = RentScraper()
-food_scraper = GroceryScraper()
 
 print("Loading...")
-rent_prices = rent_scraper.get_price()
+
+# Grab apartment data
+rent_scraper = RentScraper()
+rental_data = rent_scraper.get_data()
+
+# Grab grocery data
+food_scraper = GroceryScraper()
 grocery_prices = food_scraper.get_prices()
 
-# Save grocery price data as a CSV file
+# Grab transport data
+t_scraper = TransportScraper()
+transport_prices = t_scraper.get_pubtrans_prices()
+gas_prices = t_scraper.get_gas_prices()
+
+# Save apartment price data as a xlsx file
+with pd.ExcelWriter("rental_data.xlsx") as writer:
+    df = pd.DataFrame(rental_data)
+    df = df.drop_duplicates()
+    df.to_excel(writer, sheet_name="Data", index=False)
+
+# Save grocery price data as a xlsx file
 category_position = 0
 with pd.ExcelWriter("grocery_prices.xlsx") as writer:
     for category in grocery_prices:
@@ -22,4 +35,13 @@ with pd.ExcelWriter("grocery_prices.xlsx") as writer:
         category_position += 1
         df = df.drop_duplicates()
         df.to_excel(writer, sheet_name=f"{category_name}", index=False)
+
+# Save transport price data as a xlsx file
+with pd.ExcelWriter("transport_data.xlsx") as writer:
+    df = pd.DataFrame(transport_prices)
+    df.to_excel(writer, sheet_name="Public_Transport", index=False)
+
+    df = pd.DataFrame(gas_prices)
+    df.to_excel(writer, sheet_name="Gas", index=False)
+
 print("Done")
